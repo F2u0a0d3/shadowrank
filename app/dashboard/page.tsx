@@ -1,13 +1,21 @@
 'use client'
 
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useProfile } from '@/hooks/useProfile'
+import { useQuests } from '@/hooks/useQuests'
 import { xpProgress, RANK_COLORS } from '@/types/database'
+import QuestCard from '@/components/QuestCard'
+import AddQuestModal from '@/components/AddQuestModal'
 
 export default function DashboardPage() {
-  const { profile, loading, error } = useProfile()
+  const { profile, loading: profileLoading, error: profileError, refreshProfile } = useProfile()
+  const { quests, completedToday, loading: questsLoading, addQuest, deleteQuest, markCompleted } = useQuests()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [completingQuest, setCompletingQuest] = useState<string | null>(null)
+
   const router = useRouter()
   const supabase = createClient()
 
@@ -17,6 +25,43 @@ export default function DashboardPage() {
     router.refresh()
   }
 
+  const handleCompleteQuest = async (questId: string) => {
+    setCompletingQuest(questId)
+    try {
+      const response = await fetch('/api/complete-quest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quest_id: questId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to complete quest')
+      }
+
+      markCompleted(questId)
+      refreshProfile()
+    } catch (error) {
+      console.error('Error completing quest:', error)
+      alert(error instanceof Error ? error.message : 'Failed to complete quest')
+    } finally {
+      setCompletingQuest(null)
+    }
+  }
+
+  const handleDeleteQuest = async (questId: string) => {
+    if (!confirm('Are you sure you want to delete this quest?')) return
+
+    try {
+      await deleteQuest(questId)
+    } catch (error) {
+      console.error('Error deleting quest:', error)
+      alert(error instanceof Error ? error.message : 'Failed to delete quest')
+    }
+  }
+
+  const loading = profileLoading || questsLoading
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -25,11 +70,11 @@ export default function DashboardPage() {
     )
   }
 
-  if (error) {
+  if (profileError) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-400 mb-4">{error}</p>
+          <p className="text-red-400 mb-4">{profileError}</p>
           <button
             onClick={handleSignOut}
             className="px-4 py-2 bg-[#e94560] text-white rounded-lg hover:bg-[#ff6b6b]"
@@ -43,6 +88,9 @@ export default function DashboardPage() {
 
   const progress = profile ? xpProgress(profile.xp) : { current: 0, needed: 100, percentage: 0 }
   const rankColor = profile ? RANK_COLORS[profile.hunter_rank] : RANK_COLORS.E
+
+  const activeQuests = quests.filter(q => !completedToday.has(q.id))
+  const completedQuests = quests.filter(q => completedToday.has(q.id))
 
   return (
     <div className="min-h-screen">
@@ -134,16 +182,65 @@ export default function DashboardPage() {
         {/* Quest Board */}
         <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-[#eaeaea]">Quest Board</h2>
-            <button className="px-4 py-2 bg-[#e94560] text-white rounded-lg hover:bg-[#ff6b6b] transition-colors">
+            <h2 className="text-xl font-bold text-[#eaeaea]">
+              Quest Board
+              {activeQuests.length > 0 && (
+                <span className="ml-2 text-sm font-normal text-[#9ca3af]">
+                  ({activeQuests.length} active)
+                </span>
+              )}
+            </h2>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 bg-[#e94560] text-white rounded-lg hover:bg-[#ff6b6b] transition-colors"
+            >
               + New Quest
             </button>
           </div>
 
-          <div className="text-center py-12 text-[#6b7280]">
-            <p className="text-lg">No quests yet</p>
-            <p className="text-sm mt-2">Create your first quest to start earning XP!</p>
-          </div>
+          {quests.length === 0 ? (
+            <div className="text-center py-12 text-[#6b7280]">
+              <p className="text-lg">No quests yet</p>
+              <p className="text-sm mt-2">Create your first quest to start earning XP!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Active Quests */}
+              {activeQuests.length > 0 && (
+                <div className="space-y-3">
+                  {activeQuests.map((quest) => (
+                    <QuestCard
+                      key={quest.id}
+                      quest={quest}
+                      onComplete={handleCompleteQuest}
+                      onDelete={handleDeleteQuest}
+                      loading={completingQuest === quest.id}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Completed Quests */}
+              {completedQuests.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold text-[#9ca3af] mb-3">
+                    Completed Today ({completedQuests.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {completedQuests.map((quest) => (
+                      <QuestCard
+                        key={quest.id}
+                        quest={quest}
+                        onComplete={handleCompleteQuest}
+                        onDelete={handleDeleteQuest}
+                        isCompleted
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Quick Stats */}
@@ -154,20 +251,19 @@ export default function DashboardPage() {
             <p className="text-[#6b7280] text-sm mt-2">Total quests finished</p>
           </div>
           <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6">
-            <h3 className="text-lg font-bold text-[#eaeaea] mb-4">Member Since</h3>
-            <p className="text-xl font-medium text-[#9ca3af]">
-              {profile?.created_at
-                ? new Date(profile.created_at).toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })
-                : 'Today'}
-            </p>
-            <p className="text-[#6b7280] text-sm mt-2">Your journey began</p>
+            <h3 className="text-lg font-bold text-[#eaeaea] mb-4">Today&apos;s Progress</h3>
+            <p className="text-4xl font-bold text-green-400">{completedQuests.length} / {quests.length}</p>
+            <p className="text-[#6b7280] text-sm mt-2">Quests completed today</p>
           </div>
         </div>
       </main>
+
+      {/* Add Quest Modal */}
+      <AddQuestModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAdd={addQuest}
+      />
     </div>
   )
 }
