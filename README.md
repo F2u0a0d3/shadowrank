@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ShadowRank - The Real-Life RPG
 
-## Getting Started
+> Turn your daily habits into epic quests. Level up IRL.
 
-First, run the development server:
+A gamified habit tracker with a dark "Solo Leveling/Cyberpunk" aesthetic. Users gain XP and climb Hunter Ranks (E to S) by completing real-world tasks like studying, exercising, and coding.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+
+- **Hunter Rank System** - Progress from E-Rank to legendary S-Rank
+- **Daily Quests** - Create custom habits with XP rewards
+- **XP & Leveling** - Earn experience and level up
+- **Live Leaderboards** - Compete with friends
+- **Streak Tracking** - Build daily consistency
+- **Dark Cyberpunk Theme** - Immersive purple/pink neon aesthetic
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 14 (App Router), Tailwind CSS |
+| Backend | Supabase (PostgreSQL, Auth, Realtime) |
+| Deployment | Vercel |
+
+## Local Development
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+- Supabase account
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/shadowrank.git
+   cd shadowrank
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**
+   ```bash
+   cp .env.example .env.local
+   ```
+   Then edit `.env.local` with your Supabase credentials:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+
+4. **Set up the database**
+   - Go to Supabase Dashboard > SQL Editor
+   - Run the contents of `supabase-schema.sql`
+
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open the app**
+   Visit [http://localhost:3000](http://localhost:3000)
+
+## Deployment
+
+### Deploy to Vercel
+
+1. Push your code to GitHub
+2. Go to [vercel.com](https://vercel.com) and import your repository
+3. Add environment variables in Vercel dashboard:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+4. Deploy
+
+## Project Structure
+
+```
+shadowrank/
+├── app/
+│   ├── api/              # API routes
+│   ├── dashboard/        # Main quest board
+│   ├── leaderboard/      # Rankings page
+│   └── login/            # Authentication
+├── components/           # React components
+├── hooks/                # Custom React hooks
+├── lib/                  # Utilities (Supabase, XP calc)
+└── types/                # TypeScript types
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Hunter Rank Progression
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Rank | Level Required | Color |
+|------|---------------|-------|
+| E | 1+ | Gray |
+| D | 5+ | Green |
+| C | 10+ | Blue |
+| B | 20+ | Purple |
+| A | 30+ | Orange |
+| S | 50+ | Gold |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## License
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
