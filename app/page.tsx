@@ -1,65 +1,93 @@
-import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
+      {/* Hero Section */}
+      <main className="text-center max-w-4xl mx-auto">
+        {/* Logo/Title */}
+        <div className="mb-8">
+          <h1 className="text-5xl md:text-7xl font-bold mb-4">
+            <span className="text-[#e94560]">Shadow</span>
+            <span className="text-[#eaeaea]">Rank</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xl md:text-2xl text-[#9ca3af]">
+            The Real-Life RPG
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Tagline */}
+        <p className="text-lg md:text-xl text-[#9ca3af] mb-12 max-w-2xl mx-auto">
+          Turn your daily habits into epic quests. Gain XP, level up your Hunter Rank,
+          and compete with friends. <span className="text-[#e94560]">Are you ready to rise?</span>
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <Link
+            href="/login"
+            className="px-8 py-4 bg-[#e94560] text-white font-semibold rounded-lg
+                       hover:bg-[#ff6b6b] transition-all duration-200
+                       shadow-lg shadow-[#e94560]/30 hover:shadow-[#e94560]/50
+                       text-lg"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Start Your Journey
+          </Link>
+          <Link
+            href="/leaderboard"
+            className="px-8 py-4 border border-[#374151] text-[#eaeaea] font-semibold rounded-lg
+                       hover:border-[#e94560] hover:text-[#e94560] transition-all duration-200
+                       text-lg"
           >
-            Documentation
-          </a>
+            View Leaderboard
+          </Link>
+        </div>
+
+        {/* Hunter Ranks Preview */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold mb-6 text-[#eaeaea]">Hunter Ranks</h2>
+          <div className="flex flex-wrap justify-center gap-3">
+            <span className="rank-badge rank-e">E-Rank</span>
+            <span className="rank-badge rank-d">D-Rank</span>
+            <span className="rank-badge rank-c">C-Rank</span>
+            <span className="rank-badge rank-b">B-Rank</span>
+            <span className="rank-badge rank-a">A-Rank</span>
+            <span className="rank-badge rank-s">S-Rank</span>
+          </div>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-6 text-left">
+          <div className="quest-card p-6 rounded-xl">
+            <div className="text-3xl mb-4">&#9876;</div>
+            <h3 className="text-xl font-bold mb-2 text-[#e94560]">Daily Quests</h3>
+            <p className="text-[#9ca3af]">
+              Create custom habits and earn XP for completing them. Study, gym, coding - everything counts.
+            </p>
+          </div>
+
+          <div className="quest-card p-6 rounded-xl">
+            <div className="text-3xl mb-4">&#11014;</div>
+            <h3 className="text-xl font-bold mb-2 text-[#e94560]">Level Up</h3>
+            <p className="text-[#9ca3af]">
+              Gain experience and watch your Hunter Rank rise from E to the legendary S-Rank.
+            </p>
+          </div>
+
+          <div className="quest-card p-6 rounded-xl">
+            <div className="text-3xl mb-4">&#127942;</div>
+            <h3 className="text-xl font-bold mb-2 text-[#e94560]">Compete</h3>
+            <p className="text-[#9ca3af]">
+              See how you stack up against friends on the global leaderboard. Claim your throne.
+            </p>
+          </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="mt-20 pb-8 text-center text-[#6b7280]">
+        <p>Built for hunters who refuse to stay ordinary.</p>
+      </footer>
     </div>
   );
 }
