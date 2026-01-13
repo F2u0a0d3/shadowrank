@@ -6,15 +6,22 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useProfile } from '@/hooks/useProfile'
 import { useQuests } from '@/hooks/useQuests'
-import { xpProgress, RANK_COLORS } from '@/types/database'
+import { xpProgress, RANK_COLORS, HunterRank } from '@/types/database'
 import QuestCard from '@/components/QuestCard'
 import AddQuestModal from '@/components/AddQuestModal'
+import LevelUpModal from '@/components/LevelUpModal'
 
 export default function DashboardPage() {
   const { profile, loading: profileLoading, error: profileError, refreshProfile } = useProfile()
   const { quests, completedToday, loading: questsLoading, addQuest, deleteQuest, markCompleted } = useQuests()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [completingQuest, setCompletingQuest] = useState<string | null>(null)
+  const [levelUpData, setLevelUpData] = useState<{
+    show: boolean
+    newLevel: number
+    newRank: HunterRank
+    oldRank?: HunterRank
+  }>({ show: false, newLevel: 1, newRank: 'E' })
 
   const router = useRouter()
   const supabase = createClient()
@@ -27,6 +34,9 @@ export default function DashboardPage() {
 
   const handleCompleteQuest = async (questId: string) => {
     setCompletingQuest(questId)
+    const oldLevel = profile?.level || 1
+    const oldRank = profile?.hunter_rank || 'E'
+
     try {
       const response = await fetch('/api/complete-quest', {
         method: 'POST',
@@ -39,8 +49,20 @@ export default function DashboardPage() {
         throw new Error(data.error || 'Failed to complete quest')
       }
 
+      const data = await response.json()
+
       markCompleted(questId)
       refreshProfile()
+
+      // Show level up modal if leveled up
+      if (data.leveled_up) {
+        setLevelUpData({
+          show: true,
+          newLevel: data.new_level,
+          newRank: data.new_rank,
+          oldRank: oldRank !== data.new_rank ? oldRank : undefined,
+        })
+      }
     } catch (error) {
       console.error('Error completing quest:', error)
       alert(error instanceof Error ? error.message : 'Failed to complete quest')
@@ -263,6 +285,15 @@ export default function DashboardPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAdd={addQuest}
+      />
+
+      {/* Level Up Modal */}
+      <LevelUpModal
+        isOpen={levelUpData.show}
+        onClose={() => setLevelUpData(prev => ({ ...prev, show: false }))}
+        newLevel={levelUpData.newLevel}
+        newRank={levelUpData.newRank}
+        oldRank={levelUpData.oldRank}
       />
     </div>
   )
