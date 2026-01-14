@@ -100,6 +100,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
+    // Log activity for analytics
+    await supabase
+      .from('activity_logs')
+      .insert({
+        user_id: user.id,
+        event_type: 'quest_completed',
+        metadata: {
+          quest_id: quest_id,
+          quest_title: quest.title,
+          xp_earned: xpEarned,
+          leveled_up: leveledUp,
+        },
+      })
+
     return NextResponse.json({
       success: true,
       xp_earned: xpEarned,

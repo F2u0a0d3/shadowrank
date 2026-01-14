@@ -15,6 +15,7 @@ export interface Profile {
   streak_count: number
   last_active_date: string | null
   total_quests_completed: number
+  is_admin: boolean
   created_at: string
   updated_at: string
 }

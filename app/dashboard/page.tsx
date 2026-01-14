@@ -15,6 +15,7 @@ import SystemPanel, { StatCard } from '@/components/ui/SystemPanel'
 import XPBar from '@/components/ui/XPBar'
 import StreakFlame from '@/components/ui/StreakFlame'
 import RankBadge from '@/components/RankBadge'
+import FeedbackFAB from '@/components/FeedbackFAB'
 
 export default function DashboardPage() {
   const { profile, loading: profileLoading, error: profileError, refreshProfile } = useProfile()
@@ -315,6 +316,9 @@ export default function DashboardPage() {
         newRank={levelUpData.newRank}
         oldRank={levelUpData.oldRank}
       />
+
+      {/* Feedback FAB */}
+      <FeedbackFAB />
     </div>
   )
 }
