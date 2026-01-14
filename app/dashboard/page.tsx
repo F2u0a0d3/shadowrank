@@ -4,12 +4,17 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useProfile } from '@/hooks/useProfile'
 import { useQuests } from '@/hooks/useQuests'
-import { xpProgress, RANK_COLORS, HunterRank } from '@/types/database'
+import { xpProgress, HunterRank } from '@/types/database'
 import QuestCard from '@/components/QuestCard'
 import AddQuestModal from '@/components/AddQuestModal'
 import LevelUpModal from '@/components/LevelUpModal'
+import SystemPanel, { StatCard } from '@/components/ui/SystemPanel'
+import XPBar from '@/components/ui/XPBar'
+import StreakFlame from '@/components/ui/StreakFlame'
+import RankBadge from '@/components/RankBadge'
 
 export default function DashboardPage() {
   const { profile, loading: profileLoading, error: profileError, refreshProfile } = useProfile()
@@ -34,7 +39,6 @@ export default function DashboardPage() {
 
   const handleCompleteQuest = async (questId: string) => {
     setCompletingQuest(questId)
-    const oldLevel = profile?.level || 1
     const oldRank = profile?.hunter_rank || 'E'
 
     try {
@@ -87,7 +91,11 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-2 border-[#e94560] border-t-transparent rounded-full"></div>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-10 h-10 border-2 border-[var(--system-blue)] border-t-transparent rounded-full"
+        />
       </div>
     )
   }
@@ -95,21 +103,22 @@ export default function DashboardPage() {
   if (profileError) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">{profileError}</p>
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 bg-[#e94560] text-white rounded-lg hover:bg-[#ff6b6b]"
-          >
-            Sign Out & Try Again
-          </button>
-        </div>
+        <SystemPanel className="max-w-md">
+          <div className="text-center">
+            <p className="text-[var(--dungeon-red)] mb-4 font-display">{profileError}</p>
+            <button
+              onClick={handleSignOut}
+              className="btn-system px-6 py-2 rounded-lg"
+            >
+              Sign Out & Try Again
+            </button>
+          </div>
+        </SystemPanel>
       </div>
     )
   }
 
   const progress = profile ? xpProgress(profile.xp) : { current: 0, needed: 100, percentage: 0 }
-  const rankColor = profile ? RANK_COLORS[profile.hunter_rank] : RANK_COLORS.E
 
   const activeQuests = quests.filter(q => !completedToday.has(q.id))
   const completedQuests = quests.filter(q => completedToday.has(q.id))
@@ -117,24 +126,32 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       {/* Navigation */}
-      <nav className="border-b border-[#374151] bg-[#16213e]/50 backdrop-blur-sm sticky top-0 z-50">
+      <nav className="border-b border-[var(--glass-border)] bg-[var(--glass-dark)] backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-2xl font-bold">
-              <span className="text-[#e94560]">Shadow</span>
-              <span className="text-[#eaeaea]">Rank</span>
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-2xl font-display font-bold tracking-wider">
+                <span className="holo-text">SHADOW</span>
+                <span className="text-[var(--text-primary)]">RANK</span>
+              </span>
             </Link>
 
             <div className="flex items-center gap-6">
-              <Link href="/dashboard" className="text-[#e94560] font-medium">
+              <Link
+                href="/dashboard"
+                className="text-[var(--system-cyan)] font-display text-sm uppercase tracking-wider"
+              >
                 Dashboard
               </Link>
-              <Link href="/leaderboard" className="text-[#9ca3af] hover:text-[#eaeaea] transition-colors">
+              <Link
+                href="/leaderboard"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-display text-sm uppercase tracking-wider transition-colors"
+              >
                 Leaderboard
               </Link>
               <button
                 onClick={handleSignOut}
-                className="text-[#9ca3af] hover:text-[#e94560] transition-colors"
+                className="text-[var(--text-muted)] hover:text-[var(--dungeon-red)] font-display text-sm uppercase tracking-wider transition-colors"
               >
                 Sign Out
               </button>
@@ -146,109 +163,103 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#eaeaea]">
-            Welcome, <span className="text-[#e94560]">{profile?.display_name || profile?.username || 'Hunter'}</span>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-3xl font-display font-bold tracking-wide text-[var(--text-primary)]">
+            Welcome, <span className="holo-text">{profile?.display_name || profile?.username || 'Hunter'}</span>
           </h1>
-          <p className="text-[#9ca3af] mt-2">Your quest board awaits. Complete quests to gain XP and rank up!</p>
-        </div>
+          <p className="text-[var(--text-secondary)] mt-2 font-body">
+            Your quest board awaits. Complete quests to gain XP and rank up.
+          </p>
+        </motion.div>
 
-        {/* Stats Cards */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6">
-            <p className="text-[#9ca3af] text-sm">Hunter Rank</p>
-            <p className="text-2xl font-bold mt-1">
-              <span
-                className="rank-badge"
-                style={{
-                  background: `linear-gradient(135deg, ${rankColor}, ${rankColor}dd)`,
-                  color: profile?.hunter_rank === 'S' ? '#1a1a2e' : 'white'
-                }}
-              >
-                {profile?.hunter_rank || 'E'}-Rank
-              </span>
-            </p>
-          </div>
-          <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6">
-            <p className="text-[#9ca3af] text-sm">Level</p>
-            <p className="text-2xl font-bold text-[#eaeaea] mt-1">{profile?.level || 1}</p>
-          </div>
-          <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6">
-            <p className="text-[#9ca3af] text-sm">Total XP</p>
-            <p className="text-2xl font-bold text-[#e94560] mt-1">{profile?.xp || 0}</p>
-          </div>
-          <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6">
-            <p className="text-[#9ca3af] text-sm">Streak</p>
-            <p className="text-2xl font-bold text-[#ffd700] mt-1">
-              <span className="streak-fire">🔥</span> {profile?.streak_count || 0} days
-            </p>
-          </div>
+          <StatCard
+            label="Hunter Rank"
+            value=""
+            icon={<RankBadge rank={profile?.hunter_rank || 'E'} size="lg" showLabel={false} />}
+          />
+          <StatCard
+            label="Level"
+            value={profile?.level || 1}
+            accentColor="var(--text-primary)"
+          />
+          <StatCard
+            label="Total XP"
+            value={(profile?.xp || 0).toLocaleString()}
+            accentColor="var(--system-cyan)"
+          />
+          <StatCard
+            label="Streak"
+            value=""
+            icon={<StreakFlame count={profile?.streak_count || 0} size="md" />}
+          />
         </div>
 
-        {/* XP Progress Bar */}
-        <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6 mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[#9ca3af]">Progress to Level {(profile?.level || 1) + 1}</span>
-            <span className="text-[#e94560] font-medium">
-              {Math.floor(progress.current)} / {progress.needed} XP
-            </span>
-          </div>
-          <div className="h-3 bg-[#1a1a2e] rounded-full overflow-hidden">
-            <div
-              className="xp-bar h-full rounded-full"
-              style={{ width: `${progress.percentage}%` }}
-            ></div>
-          </div>
-        </div>
+        {/* XP Progress */}
+        <SystemPanel title="Experience Progress" className="mb-8">
+          <XPBar
+            current={progress.current}
+            max={progress.needed}
+            level={profile?.level || 1}
+          />
+        </SystemPanel>
 
         {/* Quest Board */}
-        <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6">
+        <SystemPanel
+          title="Quest Board"
+          subtitle={activeQuests.length > 0 ? `${activeQuests.length} active quest${activeQuests.length !== 1 ? 's' : ''}` : undefined}
+          className="mb-8"
+        >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-[#eaeaea]">
-              Quest Board
-              {activeQuests.length > 0 && (
-                <span className="ml-2 text-sm font-normal text-[#9ca3af]">
-                  ({activeQuests.length} active)
-                </span>
-              )}
-            </h2>
-            <button
+            <div />
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-[#e94560] text-white rounded-lg hover:bg-[#ff6b6b] transition-colors"
+              className="btn-system px-4 py-2 rounded-lg font-display text-sm uppercase tracking-wider"
             >
               + New Quest
-            </button>
+            </motion.button>
           </div>
 
           {quests.length === 0 ? (
-            <div className="text-center py-12 text-[#6b7280]">
-              <p className="text-lg">No quests yet</p>
-              <p className="text-sm mt-2">Create your first quest to start earning XP!</p>
-            </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <p className="text-lg text-[var(--text-muted)] font-display">No quests yet</p>
+              <p className="text-sm text-[var(--text-muted)] mt-2 font-body">
+                Create your first quest to start earning XP
+              </p>
+            </motion.div>
           ) : (
             <div className="space-y-4">
               {/* Active Quests */}
-              {activeQuests.length > 0 && (
-                <div className="space-y-3">
-                  {activeQuests.map((quest) => (
-                    <QuestCard
-                      key={quest.id}
-                      quest={quest}
-                      onComplete={handleCompleteQuest}
-                      onDelete={handleDeleteQuest}
-                      loading={completingQuest === quest.id}
-                    />
-                  ))}
-                </div>
-              )}
+              <AnimatePresence mode="popLayout">
+                {activeQuests.map((quest) => (
+                  <QuestCard
+                    key={quest.id}
+                    quest={quest}
+                    onComplete={handleCompleteQuest}
+                    onDelete={handleDeleteQuest}
+                    loading={completingQuest === quest.id}
+                  />
+                ))}
+              </AnimatePresence>
 
               {/* Completed Quests */}
               {completedQuests.length > 0 && (
                 <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-[#9ca3af] mb-3">
+                  <h3 className="text-lg font-display text-[var(--text-secondary)] mb-4 uppercase tracking-wider">
                     Completed Today ({completedQuests.length})
                   </h3>
-                  <div className="space-y-3">
+                  <AnimatePresence mode="popLayout">
                     {completedQuests.map((quest) => (
                       <QuestCard
                         key={quest.id}
@@ -258,25 +269,34 @@ export default function DashboardPage() {
                         isCompleted
                       />
                     ))}
-                  </div>
+                  </AnimatePresence>
                 </div>
               )}
             </div>
           )}
-        </div>
+        </SystemPanel>
 
         {/* Quick Stats */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6">
-            <h3 className="text-lg font-bold text-[#eaeaea] mb-4">Quests Completed</h3>
-            <p className="text-4xl font-bold text-[#e94560]">{profile?.total_quests_completed || 0}</p>
-            <p className="text-[#6b7280] text-sm mt-2">Total quests finished</p>
-          </div>
-          <div className="bg-[#16213e] border border-[#374151] rounded-xl p-6">
-            <h3 className="text-lg font-bold text-[#eaeaea] mb-4">Today&apos;s Progress</h3>
-            <p className="text-4xl font-bold text-green-400">{completedQuests.length} / {quests.length}</p>
-            <p className="text-[#6b7280] text-sm mt-2">Quests completed today</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SystemPanel title="Quests Completed">
+            <div className="flex items-end gap-2">
+              <span className="text-4xl font-display font-bold text-[var(--system-cyan)]">
+                {profile?.total_quests_completed || 0}
+              </span>
+              <span className="text-[var(--text-muted)] text-sm mb-1 font-body">total</span>
+            </div>
+          </SystemPanel>
+
+          <SystemPanel title="Today&apos;s Progress">
+            <div className="flex items-end gap-2">
+              <span className="text-4xl font-display font-bold text-green-400">
+                {completedQuests.length}
+              </span>
+              <span className="text-[var(--text-muted)] text-sm mb-1 font-body">
+                / {quests.length} quests
+              </span>
+            </div>
+          </SystemPanel>
         </div>
       </main>
 
